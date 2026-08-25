@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui" onLoad="Ribbon_Load">
+  <ribbon>
+    <tabs>
+      <tab id="FolderSuggestTab" label="FolderSuggest">
+        <group id="FolderGroup" label="FolderSuggest" imageMso="FolderOpen">
+          <box id="FoldersBox" boxStyle="vertical">
+            <button id="Folder1" label="Google (Personal)" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
+            <button id="Folder2" label="Legal - Misc" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
+            <button id="Folder3" label="When John los" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
+          </box>
+          <box id="FoldersBox2" boxStyle="vertical">
+            <button id="Folder4" label="QuickPick" size="normal" imageMso="Open" onAction="FolderButtonClick"/>
+            <button id="Folder5" label="Training" size="normal" imageMso="Help" onAction="FolderButtonClick"/>
+            <button id="Folder6" label="Undo" size="normal" imageMso="Undo" onAction="FolderButtonClick"/>
+          </box>
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="FolderSuggest.Views.EmailListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:FolderSuggest.Converters"
+        Title="Emails by Folder" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisConverter"/>
+    </Window.Resources>
+    <DockPanel Background="#F5F5F5">
+        <Grid DockPanel.Dock="Top" Background="#2E5090" Height="80">
+            <StackPanel Orientation="Vertical" Margin="15">
+                <TextBlock Text="Email List" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                <TextBlock Text="View all emails from your Outlook folders" Foreground="#D0D0D0" FontSize="12" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Border DockPanel.Dock="Bottom" Background="White" BorderThickness="0,1,0,0" BorderBrush="#CCCCCC">
+            <Grid Margin="15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" FontSize="12" Foreground="#666666" VerticalAlignment="Center"/>
+
+                <ProgressBar Grid.Column="1" IsIndeterminate="{Binding IsLoading}"
+                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"
+                            Width="100" Height="20" Margin="10,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <Grid Margin="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <DataGrid Grid.Column="0" ItemsSource="{Binding Emails}" AutoGenerateColumns="False"
+                      IsReadOnly="True" CanUserAddRows="False" Background="White" BorderBrush="#CCCCCC">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="From" Binding="{Binding From}" Width="150"/>
+                    <DataGridTextColumn Header="Subject" Binding="{Binding Subject}" Width="*"/>
+                    <DataGridTextColumn Header="Folder" Binding="{Binding FolderName}" Width="120"/>
+                    <DataGridTextColumn Header="Received" Binding="{Binding ReceivedTime, StringFormat='MM/dd/yyyy HH:mm'}" Width="150"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel Grid.Column="1" Margin="15,0,0,0" Orientation="Vertical" VerticalAlignment="Top">
+                <Button Command="{Binding LoadEmailsCommand}"
+                        Background="#2E5090" Foreground="White" Padding="15,10"
+                        FontSize="12" Cursor="Hand" MinWidth="100">
+                    <TextBlock Text="Refresh" TextAlignment="Center"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>
