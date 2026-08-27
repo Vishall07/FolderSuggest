@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using FolderSuggest.Models;
+using Newtonsoft.Json;
 
 namespace FolderSuggest.Services
 {
@@ -19,6 +20,12 @@ namespace FolderSuggest.Services
             return Path.Combine(appData, "FolderSuggest", "EmailFolderModel.zip");
         }
 
+        private static string GetLabelsPath()
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(appData, "FolderSuggest", "FolderLabels.json");
+        }
+
         public FolderPredictionService(PredictionEngine<EmailData, EmailPrediction> engine, string[] labelNames)
         {
             _engine = engine;
@@ -30,17 +37,22 @@ namespace FolderSuggest.Services
             try
             {
                 var modelPath = GetModelPath();
-                if (!File.Exists(modelPath))
+                var labelsPath = GetLabelsPath();
+
+                if (!File.Exists(modelPath) || !File.Exists(labelsPath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Model or labels file not found. Model: {File.Exists(modelPath)}, Labels: {File.Exists(labelsPath)}");
                     return null;
+                }
 
                 var mlContext = new MLContext();
                 ITransformer model = mlContext.Model.Load(modelPath, out var schema);
                 var engine = mlContext.Model.CreatePredictionEngine<EmailData, EmailPrediction>(model);
 
-                var scoreCol = schema["Score"];
-                VBuffer<ReadOnlyMemory<char>> slotNames = default;
-                scoreCol.Annotations.GetValue("SlotNames", ref slotNames);
-                var labelNames = slotNames.DenseValues().Select(v => v.ToString()).ToArray();
+                var labelsJson = File.ReadAllText(labelsPath);
+                var labelNames = JsonConvert.DeserializeObject<List<string>>(labelsJson).ToArray();
+
+                System.Diagnostics.Debug.WriteLine($"Loaded model with {labelNames.Length} labels: {string.Join(", ", labelNames)}");
 
                 return new FolderPredictionService(engine, labelNames);
             }

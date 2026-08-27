@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using FolderSuggest.Models;
 using Outlook = Microsoft.Office.Interop.Outlook;
+using Newtonsoft.Json;
 
 namespace FolderSuggest.Services
 {
@@ -18,6 +20,12 @@ namespace FolderSuggest.Services
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             return Path.Combine(appData, "FolderSuggest", "EmailFolderModel.zip");
+        }
+
+        private static string GetLabelsPath()
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(appData, "FolderSuggest", "FolderLabels.json");
         }
 
         public FolderPredictionTrainer(Outlook.Application outlookApp)
@@ -38,6 +46,8 @@ namespace FolderSuggest.Services
                     return;
                 }
 
+                var folderLabels = trainingData.Select(x => x.FolderName).Distinct().OrderBy(x => x).ToList();
+
                 ProgressUpdated?.Invoke(30, $"Collected {trainingData.Count} emails. Building ML pipeline...");
                 var mlContext = new MLContext();
 
@@ -49,8 +59,12 @@ namespace FolderSuggest.Services
 
                 ProgressUpdated?.Invoke(80, "Saving model...");
                 var modelPath = GetModelPath();
+                var labelsPath = GetLabelsPath();
                 Directory.CreateDirectory(Path.GetDirectoryName(modelPath));
                 mlContext.Model.Save(model, dataView.Schema, modelPath);
+
+                var labelsJson = JsonConvert.SerializeObject(folderLabels);
+                File.WriteAllText(labelsPath, labelsJson, Encoding.UTF8);
 
                 ProgressUpdated?.Invoke(100, "Training complete! Model saved.");
             }

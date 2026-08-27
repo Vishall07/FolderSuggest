@@ -1,8 +1,8 @@
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using FolderSuggest.Services;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
@@ -14,6 +14,7 @@ namespace FolderSuggest.ViewModels
         private string _statusMessage;
         private bool _isTraining;
         private readonly Outlook.Application _outlookApp;
+        private readonly Dispatcher _dispatcher;
 
         public int ProgressValue
         {
@@ -57,9 +58,10 @@ namespace FolderSuggest.ViewModels
 
         public ICommand StartTrainingCommand { get; }
 
-        public TrainingViewModel(Outlook.Application outlookApp)
+        public TrainingViewModel(Outlook.Application outlookApp, Dispatcher dispatcher)
         {
             _outlookApp = outlookApp;
+            _dispatcher = dispatcher ?? Dispatcher.CurrentDispatcher;
             StatusMessage = "Ready. Click 'Start Training' to begin.";
             StartTrainingCommand = new RelayCommand(StartTraining, () => !IsTraining);
         }
@@ -90,7 +92,7 @@ namespace FolderSuggest.ViewModels
 
         private void OnProgressUpdated(int progress, string message)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 ProgressValue = progress;
                 StatusMessage = message;
