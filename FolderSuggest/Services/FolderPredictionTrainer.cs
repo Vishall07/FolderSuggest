@@ -14,7 +14,11 @@ namespace FolderSuggest.Services
         private readonly Outlook.Application _outlookApp;
         public event Action<int, string> ProgressUpdated;
 
-        private const string ModelPath = @"EmailFolderModel.zip";
+        private static string GetModelPath()
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(appData, "FolderSuggest", "EmailFolderModel.zip");
+        }
 
         public FolderPredictionTrainer(Outlook.Application outlookApp)
         {
@@ -44,7 +48,9 @@ namespace FolderSuggest.Services
                 var model = pipeline.Fit(dataView);
 
                 ProgressUpdated?.Invoke(80, "Saving model...");
-                mlContext.Model.Save(model, dataView.Schema, ModelPath);
+                var modelPath = GetModelPath();
+                Directory.CreateDirectory(Path.GetDirectoryName(modelPath));
+                mlContext.Model.Save(model, dataView.Schema, modelPath);
 
                 ProgressUpdated?.Invoke(100, "Training complete! Model saved.");
             }
@@ -92,14 +98,12 @@ namespace FolderSuggest.Services
                     {
                         if (item is Outlook.MailItem mailItem)
                         {
-                            var emailData = new EmailData
+                            trainingData.Add(new EmailData
                             {
                                 FolderName = folder.Name,
                                 Subject = mailItem.Subject ?? "",
-                                BodyPreview = (mailItem.Body ?? "").Substring(0, Math.Min(500, (mailItem.Body ?? "").Length)),
-                                From = mailItem.SenderName ?? ""
-                            };
-                            trainingData.Add(emailData);
+                                SenderEmail = mailItem.SenderEmailAddress ?? ""
+                            });
                         }
                     }
 
@@ -117,32 +121,19 @@ namespace FolderSuggest.Services
 
         private IEstimator<ITransformer> BuildPipeline(MLContext mlContext)
         {
-            var pipeline = mlContext.Transforms.Text.FeaturizeText("SubjectFeatures", new TextFeaturizingEstimator.Options
-            {
-                OutputColumnName = "SubjectFeatures",
-                InputColumnName = "Subject"
-            })
-            .Append(mlContext.Transforms.Text.FeaturizeText("BodyFeatures", new TextFeaturizingEstimator.Options
-            {
-                OutputColumnName = "BodyFeatures",
-                InputColumnName = "BodyPreview"
-            }))
-            .Append(mlContext.Transforms.Concatenate("Features", "SubjectFeatures", "BodyFeatures"))
-            .Append(mlContext.MulticlassClassification.Trainers.FastTree(
-                labelColumnName: "FolderName",
-                featureColumnName: "Features"));
-
-            return pipeline;
+            return mlContext.Transforms.Conversion.MapValueToKey("Label", "FolderName")
+                .Append(mlContext.Transforms.Text.FeaturizeText("SubjectFeatures", "Subject"))
+                .Append(mlContext.Transforms.Text.FeaturizeText("SenderFeatures", "SenderEmail"))
+                .Append(mlContext.Transforms.Concatenate("Features", "SubjectFeatures", "SenderFeatures"))
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                    labelColumnName: "Label",
+                    featureColumnName: "Features"))
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel", "PredictedLabel"));
         }
 
         public static bool ModelExists()
         {
-            return File.Exists(ModelPath);
-        }
-
-        public static string GetModelPath()
-        {
-            return Path.GetFullPath(ModelPath);
+            return File.Exists(GetModelPath());
         }
     }
 }

@@ -5,18 +5,54 @@ using System.Text;
 using System.Xml.Linq;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Office = Microsoft.Office.Core;
+using FolderSuggest.Services;
 
 namespace FolderSuggest
 {
     public partial class ThisAddIn
     {
+        private FolderPredictionService _predictionService;
+        public static Ribbon1 RibbonInstance { get; set; }
+
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
         {
-            return new Ribbon1();
+            var ribbon = new Ribbon1();
+            RibbonInstance = ribbon;
+            return ribbon;
         }
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
+            _predictionService = FolderPredictionService.TryLoad();
+
+            var explorer = Application.ActiveExplorer();
+            if (explorer != null)
+            {
+                explorer.SelectionChange += OnSelectionChange;
+            }
+        }
+
+        private void OnSelectionChange()
+        {
+            try
+            {
+                if (_predictionService == null)
+                    return;
+
+                var explorer = Application.ActiveExplorer();
+                if (explorer?.Selection?.Count == 0)
+                    return;
+
+                if (explorer.Selection[1] is Outlook.MailItem mail)
+                {
+                    var preds = _predictionService.Predict(mail.Subject ?? "", mail.SenderEmailAddress ?? "");
+                    RibbonInstance?.UpdatePredictions(preds);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnSelectionChange: {ex.Message}");
+            }
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)

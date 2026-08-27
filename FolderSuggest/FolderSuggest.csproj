@@ -236,16 +236,27 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <Compile Include="Models\EmailItem.cs" />
+    <Compile Include="Models\EmailData.cs" />
     <Compile Include="Services\OutlookService.cs" />
+    <Compile Include="Services\FolderPredictionTrainer.cs" />
+    <Compile Include="Services\FolderPredictionService.cs" />
     <Compile Include="ViewModels\EmailListViewModel.cs" />
+    <Compile Include="ViewModels\TrainingViewModel.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Views\EmailListWindow.xaml.cs">
       <DependentUpon>EmailListWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TrainingWindow.xaml.cs">
+      <DependentUpon>TrainingWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Page Include="Views\EmailListWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TrainingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

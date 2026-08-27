@@ -5,9 +5,9 @@
       <tab id="FolderSuggestTab" label="FolderSuggest">
         <group id="FolderGroup" label="FolderSuggest" imageMso="FolderOpen">
           <box id="FoldersBox" boxStyle="vertical">
-            <button id="Folder1" label="Google (Personal)" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
-            <button id="Folder2" label="Legal - Misc" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
-            <button id="Folder3" label="When John los" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
+            <button id="Folder1" getLabel="GetFolderLabel" getEnabled="GetFolderEnabled" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
+            <button id="Folder2" getLabel="GetFolderLabel" getEnabled="GetFolderEnabled" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
+            <button id="Folder3" getLabel="GetFolderLabel" getEnabled="GetFolderEnabled" size="normal" imageMso="FolderOpen" onAction="FolderButtonClick"/>
           </box>
           <box id="FoldersBox2" boxStyle="vertical">
             <button id="Folder4" label="QuickPick" size="normal" imageMso="Open" onAction="FolderButtonClick"/>
